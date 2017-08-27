@@ -1,0 +1,383 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGl-Publisher: Architecture Models</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style type="text/css">
+    .cmiStyle select {font-size:100%; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 4px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle button {font-size:100%; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle label  {font-size:100%; margin: 4px; margin-right: -2px; margin-left: -2px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle input[type=radio] {display: none;}
+    .cmiStyle input[type=radio]:checked + label{background-color:#1E90FF;}
+    .cmiStyle input[type=checkbox] {display: none;}
+    .cmiStyle input[type=checkbox]:checked + label{font-size:100%; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; background-color:#1E90FF;}
+    .cmiStyle input[type=checkbox] + label{font-size:100%; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; background-color:#383838;}
+  </style>
+  <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+              (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-68588604-1', 'auto');
+      ga('send', 'pageview');
+
+  </script>
+
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiAssemblyBrowser.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiLayerBrowser.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiWindowDefinition.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiObjectDefinitions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiShaderDefinitions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiHelperFunctions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiShaderSources.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiModelDefinition.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/ThirdPartyHelpers.js"></script>
+  <script type="text/javascript">
+
+      var myCmiWindow;
+      var infoText;
+      var statusText;
+      var cmiCanvas;
+      var myAssemblyBrowser;
+      var myLayerBrowser;
+
+      function cmiWindowStart()
+      {
+          infoText = document.getElementById("InfoText");
+          statusText = document.getElementById("StatusText");
+          cmiCanvas = document.getElementById("CmiCanvas");
+          ResizeWindow();
+
+          myCmiWindow = new CmiWindow("CmiCanvas");
+          if(myCmiWindow.isUsable)
+          {
+              if(myCmiWindow.checkWebGlUsage() < 0)
+              {
+                  SetInfoText(myCmiWindow.getLastError().message);
+                  return;
+              }
+              myCmiWindow.setBgColorRGB(87,97,107);
+              myCmiWindow.setBgText("WebGL-Publisher");
+              myCmiWindow.colGradient = false;
+              if(myCmiWindow.initWebGlWindow() < 0)
+              {
+                  SetInfoText(myCmiWindow.getLastError().message);
+                  return;
+              }
+              SetInfoText("Direct export from Autodesk's Revit &reg;");
+
+              myCmiWindow.setBgSkyBox("SunSet");
+              myCmiWindow.useSkyBoxBackground = true;
+              myCmiWindow.setNotificationHandler(OnCmiNotification);
+              myCmiWindow.loadModelFromUrl("${apppath}/cmall/js/3d/youngGarde2.wpm");
+              myCmiWindow.switchToPerspective(true);
+              myCmiWindow.setMouseModeToRotation();
+              myCmiWindow.handleArrowKeys = false;
+              myCmiWindow.useFrontAsTop=true;
+              myCmiWindow.useSizeCulling = true;
+              myCmiWindow.useViewportCulling = true;
+              myCmiWindow.setHeadUpAngle4FirstPersonView(-5.0);
+
+              myAssemblyBrowser = new CmiAssemblyBrowser("myAssemblyBrowser","AssemblyTable");
+              myLayerBrowser = new CmiLayerBrowser("myLayerBrowser","AssemblyTable");
+
+          }//if(myCmiWindow.isUsable)
+      }//function cmiWindowStart()
+
+      function SetInfoText(newText)
+      {
+          infoText.innerHTML = newText;
+      }
+
+      function SetStatusText(newText)
+      {
+          statusText.innerHTML = newText;
+      }
+
+      function OnCmiNotification (event)
+      {
+          var txtParts = event.data.split("|");
+          for (var i = 0 ; i < txtParts.length ; i++) {
+              console.log(txtParts[i]);
+          }
+
+          if(txtParts[0]=="CMI_ERROR")
+          {
+              SetStatusText(txtParts[2]);
+          }
+          else if ((txtParts[0]=="CMI_INFO")&&(txtParts[1]=="ModelLoading"))
+          {
+              SetStatusText(txtParts[2]);
+          }
+          else if ((txtParts[0]=="CMI_INFO")&&(txtParts[1]=="ModelOpened"))
+          {
+              var selectObject = document.getElementById("ModelSelection");
+
+              //Rebuild assembly tree
+              switch(selectObject.selectedIndex)
+              {
+                  case 1:
+                  case 5:
+                      myAssemblyBrowser.buildAssemblyTree(myCmiWindow.getCmiModel(),true,0,"Model structure");
+                      myAssemblyBrowser.rebuildTreeViewTable();
+                      SetStatusText("");
+                      break;
+                  case 3:
+                      myLayerBrowser.buildLayerList(myCmiWindow.getCmiModel(),true,1,"Layer structure");
+                      myLayerBrowser.rebuildLayerViewTable();
+                      SetStatusText("");
+                      break;
+                  case 4:
+                      myLayerBrowser.buildLayerList(myCmiWindow.getCmiModel(),false,1,"Level structure");
+                      myLayerBrowser.rebuildLayerViewTable();
+                      SetStatusText("");
+                      break;
+                  default:
+                      myAssemblyBrowser.buildAssemblyTree(myCmiWindow.getCmiModel(),true,1,"Model structure");
+                      myAssemblyBrowser.rebuildTreeViewTable();
+                      SetStatusText("");
+                      break;
+              }
+          }
+          else if ((txtParts[0]=="CMI_INFO")&&(txtParts[1]=="ModelDisplayed"))
+          {
+              if ((!myCmiWindow) || (!myCmiWindow.isUsable))
+                  return;
+
+              var selectObject = document.getElementById("ModelSelection");
+
+              switch(selectObject.selectedIndex)
+              {
+                  case 0:
+                  case 2:
+                      myCmiWindow.rotateSceneAbsolut(0.0, -100.0, 0.0,true);
+                      break;
+                  case 3:
+                  case 4:
+                      myCmiWindow.rotateSceneAbsolut(-130.0, 120.0, -130.0,true);
+                      break;
+                  case 5:
+                      myCmiWindow.rotateSceneAbsolut(-130.0, 120.0, -130.0,true);
+                      break;
+              }
+              document.getElementById("ViewSelection").selectedIndex = 0;
+              myCmiWindow.zoomAll();
+          }
+      }
+
+      function ResizeWindow()
+      {
+          var xSize = window.innerWidth;
+          var ySize = window.innerHeight;
+          var tbHeight = document.getElementById("CmiToolbar").offsetHeight;
+          var asmTable = document.getElementById("AssemblyTable");
+
+          cmiCanvas.width=xSize-15;
+          cmiCanvas.height=ySize-tbHeight-45;
+
+          if((myCmiWindow)&&(myCmiWindow.isUsable))
+          {
+              var canvas = myCmiWindow.getCanvas();
+              myCmiWindow.resizeContext(canvas.width,canvas.height);
+          }
+          statusText.style.top=(parseInt(tbHeight)+15)+"px";
+          asmTable.style.top=(parseInt(tbHeight)+30)+"px";
+      }//function ResizeWindow()
+
+      function switchView(viewSelection, cmiWindow)
+      {
+          if((!cmiWindow)||(!cmiWindow.isUsable))
+              return;
+
+          switch(viewSelection.selectedIndex)
+          {
+              case 0:
+              {
+                  var selectObject = document.getElementById("ModelSelection");
+                  if((selectObject.selectedIndex == 0)||(selectObject.selectedIndex == 2))
+                  {
+                      myCmiWindow.rotateSceneAbsolut(0.0, -100.0, 0.0,true);
+                  }
+                  else if((selectObject.selectedIndex == 3)||(selectObject.selectedIndex == 4))
+                  {
+                      myCmiWindow.rotateSceneAbsolut(-130.0, 120.0, -130.0,true);
+                  }
+                  cmiWindow.zoomAll();
+              }
+                  break;
+              case 1:
+                  cmiWindow.showOglStdView("Front");
+                  break;
+              case 2:
+                  cmiWindow.showOglStdView("Back");
+                  break;
+              case 3:
+                  cmiWindow.showOglStdView("Left");
+                  break;
+              case 4:
+                  cmiWindow.showOglStdView("Right");
+                  break;
+              case 5:
+                  cmiWindow.showOglStdView("Top");
+                  break;
+              case 6:
+                  cmiWindow.showOglStdView("Bottom");
+                  break;
+              case 7:
+                  cmiWindow.showOglStdView("ISO");
+                  break;
+          }
+      }//function switchView(viewSelection, cmiWindow)
+
+      function switchModel(selectObject, cmiWindow)
+      {
+          if((!cmiWindow)||(!cmiWindow.isUsable))
+              return;
+
+          switch(selectObject.selectedIndex)
+          {
+              case 0://Mansion
+                  cmiWindow.loadModelFromUrl("CmiModels/Mansion.wpm");
+                  myCmiWindow.switchToPerspective(false);
+                  SetInfoText("Direct export from Autodesk's Revit &reg;");
+                  break;
+              case 1://Apartment
+                  cmiWindow.loadModelFromUrl("CmiModels/Apartment.wpm");
+                  myCmiWindow.switchToPerspective(false);
+                  SetInfoText("Face based texturing of a step model");
+                  break;
+              case 2://ApartmentBuilding
+                  cmiWindow.loadModelFromUrl("CmiModels/ApartmentBuilding.wpm");
+                  myCmiWindow.switchToPerspective(false);
+                  SetInfoText("Direct export from Autodesk's Revit &reg;");
+                  break;
+              case 3://Basic sample
+                  cmiWindow.loadModelFromUrl("CmiModels/rac_basic_sample_project.wpm");
+                  myCmiWindow.switchToPerspective(false);
+                  SetInfoText("Direct export from Autodesk's Revit &reg;");
+                  break;
+              case 4://Advanced sample
+                  cmiWindow.loadModelFromUrl("CmiModels/rac_advanced_sample_project.wpm");
+                  myCmiWindow.switchToPerspective(false);
+                  SetInfoText("Direct export from Autodesk's Revit &reg; (6300 components, 460000 triangles, 12 MB model size)");
+                  break;
+              case 5://3D scan from a bridge
+                  cmiWindow.loadModelFromUrl("CmiModels/Landbrugg.wpm");
+                  myCmiWindow.switchToOrtho(false);
+                  SetInfoText("3D environment scan from <a href='http://www.hmq-mobilemapping.ch'  target='_blank'>HMQ AG</a>");
+                  break;
+          }//switch(selectObject.selectedIndex)
+
+          cmiWindow.drawScene();
+      }//function switchModel(selectObject, cmiWindow)
+
+      function Switch2FirstPersonView(theCheckbox)
+      {
+          var zoomLabel = document.getElementById("MouseZoomLabel");
+          var rotateLabel = document.getElementById("MouseRotateLabel");
+          var perspectiveButton = document.getElementById("Perspective");
+          var zoomButton= document.getElementById("MouseZoom");
+          var rotateButton = document.getElementById("MouseRotate");
+          var moveButton = document.getElementById("MouseMove");
+          var selectButton = document.getElementById("MouseSelect");
+
+          if(myCmiWindow.isUsable)
+          {
+              if(theCheckbox.checked)
+              {
+                  if(zoomLabel)
+                      zoomLabel.innerHTML = "Go";
+                  if(rotateLabel)
+                      rotateLabel.innerHTML = "Turn";
+
+                  myCmiWindow.switchTo1stPersonView(true);
+
+                  if(perspectiveButton)
+                      perspectiveButton.checked = true;
+
+                  myCmiWindow.setMouseModeToZoom();
+                  if(zoomButton)
+                      zoomButton.checked = true;
+                  if(rotateButton)
+                      rotateButton.checked = false;
+                  if(moveButton)
+                      moveButton.checked = false;
+                  if(selectButton)
+                      selectButton.checked = false;
+
+              }
+              else
+              {
+                  myCmiWindow.switchToModelView(true);
+
+                  if(zoomLabel)
+                      zoomLabel.innerHTML = "Zoom";
+                  if(rotateLabel)
+                      rotateLabel.innerHTML = "Rotate";
+                  if((myCmiWindow.isOrthoView)&&(perspectiveButton))
+                      perspectiveButton.checked = false;
+
+                  myCmiWindow.setMouseModeToRotation();
+                  if(zoomButton)
+                      zoomButton.checked = false;
+                  if(rotateButton)
+                      rotateButton.checked = true;
+                  if(moveButton)
+                      moveButton.checked = false;
+                  if(selectButton)
+                      selectButton.checked = false;
+              }
+          }//if(myCmiWindow.isUsable)
+      }//Switch2FirstPersonView
+
+  </script>
+</head>
+
+<body style="background-color:#57616B; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif;" onload="javascript:cmiWindowStart()"  onresize="javascript:ResizeWindow()">
+<form name="ControlForm">
+  <div id="CmiToolbar"  class="cmiStyle" style="font-size:90%;">
+    <input type="radio" id="MouseMove" name="radio" onclick="javascript:myCmiWindow.setMouseModeToMovement()" /><label for="MouseMove">Move</label>
+    <input type="radio" id="MouseZoom" name="radio" onclick="javascript:myCmiWindow.setMouseModeToZoom()"/><label id="MouseZoomLabel" for="MouseZoom">Zoom</label>
+    <input type="radio" id="MouseRotate" name="radio" onclick="javascript:myCmiWindow.setMouseModeToRotation()" checked="checked"/><label id="MouseRotateLabel" for="MouseRotate">Rotate</label>
+    <button name="ZoomAll" type="button" value="Zoom All" alt="Zoom All" onclick="javascript:myCmiWindow.zoomAll()">Zoom All</button>
+    <input type="checkbox" id="FirstPersonView" name="checkbox" onclick="javascript:Switch2FirstPersonView(this)" /><label for="FirstPersonView">1st person view</label>
+    <select size="1" length=50 id="ViewSelection" onchange="javascript:switchView(this,myCmiWindow)">
+      <option>Start view</option>
+      <option>Front view</option>
+      <option>Back view</option>
+      <option>Left view</option>
+      <option>Right view</option>
+      <option>Top view</option>
+      <option>Bottom view</option>
+      <option>ISO view</option>
+    </select>
+    <select size="1" id="ModelSelection" onchange="javascript:switchModel(this,myCmiWindow)">
+      <option selected>Mansion (Revit&reg; model)</option>
+      <option>Flat (Step model)</option>
+      <option>Apartment building (Revit&reg; model)</option>
+      <option>Basic Revit&reg; sample</option>
+      <option>Advanced Revit&reg; sample</option>
+      <option>3D scan from a bridge</option>
+    </select> </br>
+  </div>
+  <canvas id="CmiCanvas" style="touch-action: none;"></canvas>
+  <div id="StatusText" style="position:absolute; top:45px; left:10px; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif; font-size:14px;"></div>
+  <div id="InfoText" color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif; font-size:15px;">
+  Loading...
+  </div>
+</form>
+<table border="0" cellpadding="0" cellspacing="0" id="AssemblyTable" style="position:absolute; top:60px; left:10px; font-weight:bold; color:#FFFFFF;">
+  <thead style="font-size:14px;">
+  <tr>
+    <th height="30" align=left>Component&nbsp;</th>
+    <th align=left>Show&nbsp;</th>
+    <th align=left>Highlight&nbsp;</th>
+  </tr>
+  </thead>
+  <tbody style="font-size:12px;">
+  </tbody>
+</table>
+</body>
+</html>

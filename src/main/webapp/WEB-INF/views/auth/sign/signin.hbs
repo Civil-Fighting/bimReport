@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN" >
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Bim web site</title>
+    {{assetStyle "resources/js/sign/sign.css"}}
+</head>
+<body>
+<div class="loginpage-bg" id="loginpage">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10">
+                <form class="form-signin" action="/auth/loginAction" method="post">
+                    <h2 class="form-signin-heading">Welcome login</h2>
+                    <label for="inputEmail" class="sr-only">email account</label>
+                    <input type="email" name="userName" id="userName" class="form-control"
+                           placeholder="Email account" required autofocus>
+                    <label for="inputPassword" class="sr-only">password</label>
+                    <input type="password" name="password" id="password" class="form-control"
+                           placeholder="password" required>
+                    <div>
+                        <input type="hidden" id="rtnUrl" name="rtnUrl" value="{{default rtnUrl "/"}}"/>
+                        <input type="hidden" id="alertFlag" name="alertFlag" value="{{default alertFlag ""}}"/>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="isRememberLogin" name="isRememberLogin" value="true">Remember me
+                        </label>
+                        <label id="forget_password"><a href="#">forget password</a></label>
+                    </div>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit"
+                            value="login">Sign in</button>
+                    <div class="signup_now">
+                        <a href="/signup/personal">Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

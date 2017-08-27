@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGl-Publisher: Architecture Models</title>
+  <!--<%--<meta name="viewport" content="width=device-width, initial-scale=1">--%>-->
+
+</head>
+
+<body style="background-color:#57616B; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif;" >
+<form name="ControlForm">
+  <div id="CmiToolbar"  class="cmiStyle" style="font-size:90%;">
+    <input type="radio" id="MouseMove" name="radio" onclick="javascript:myCmiWindow.setMouseModeToMovement()" /><label for="MouseMove">移动</label>
+    <input type="radio" id="MouseZoom" name="radio" onclick="javascript:myCmiWindow.setMouseModeToZoom()"/><label id="MouseZoomLabel" for="MouseZoom">缩放</label>
+    <input type="radio" id="MouseRotate" name="radio" onclick="javascript:myCmiWindow.setMouseModeToRotation()" checked="checked"/><label id="MouseRotateLabel" for="MouseRotate">旋转</label>
+    <button name="ZoomAll" type="button" value="Zoom All" alt="Zoom All" onclick="javascript:myCmiWindow.zoomAll()">缩放所有</button>
+    <input type="checkbox" id="FirstPersonView" name="checkbox" onclick="javascript:Switch2FirstPersonView(this)" /><label for="FirstPersonView">第一人视角</label>
+    <select size="1" length=50 id="ViewSelection" onchange="javascript:switchView(this,myCmiWindow)">
+      <option>初始面</option>
+      <option>正面</option>
+      <option>背面</option>
+      <option>左面</option>
+      <option>右面</option>
+      <option>顶面</option>
+      <option>底面</option>
+      <option>ISO面</option>
+    </select>
+    <select size="1" id="ModelSelection" onchange="javascript:switchModel(this,myCmiWindow)">
+      <option selected>例子1 (Revit&reg; model)</option>
+      <option>Flat (Step model)</option>
+      <option>Apartment(Revit&reg; model)</option>
+      <option>Basic Revit&reg; sample</option>
+      <option>Advanced Revit&reg; sample</option>
+      <option>3D scan from a bridge</option>
+    </select> </br>
+  </div>
+  <canvas id="CmiCanvas" style="touch-action: none;"></canvas>
+  <div id="StatusText" style="position:absolute; top:45px; left:10px; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif; font-size:14px;"></div>
+  <div id="InfoText" color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif; font-size:15px;">
+  Loading...
+  </div>
+</form>
+<table border="0" cellpadding="0" cellspacing="0" id="AssemblyTable" style="position:absolute; top:60px; left:10px; font-weight:bold; color:#FFFFFF;">
+  <thead style="font-size:14px;">
+  <tr>
+    <th height="30" align=left>&nbsp;</th>
+    <th align=left>显示&nbsp;</th>
+    <th align=left>选择&nbsp;</th>
+  </tr>
+  </thead>
+  <tbody style="font-size:12px;">
+  </tbody>
+</table>
+</body>
+</html>

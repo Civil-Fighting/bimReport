@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGl-Publisher: Exorted Model</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="Description" CONTENT="WebGL-Publisher model.">
+  <meta name="Keywords" CONTENT="WebGL, WebGL-Publisher, HTML 5">
+
+  <style type="text/css">
+    .cmiStyle select {font-size:100; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 4px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle button {font-size:100; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle label  {font-size:100; margin: 4px; margin-right: -2px; margin-left: -2px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; color:#EEEEEE; background-color:#383838;}
+    .cmiStyle input[type=radio] {display: none;}
+    .cmiStyle input[type=radio]:checked + label{background-color:#1E90FF;}
+    .cmiStyle input[type=checkbox] {display: none;}
+    .cmiStyle input[type=checkbox]:checked + label{font-size:100; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; background-color:#1E90FF;}
+    .cmiStyle input[type=checkbox] + label{font-size:100; margin: 3px; margin-right: 4px; margin-left: 4px; padding: 5px; padding-right:8px; padding-left:8px; border:0px; background-color:#383838;}
+  </style>
+
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiLayerBrowser.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiWindowDefinition.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiObjectDefinitions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiShaderDefinitions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiHelperFunctions.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiShaderSources.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/CmiModelDefinition.js"></script>
+  <script type="text/javascript" src="${apppath}/cmall/js/3d/CmiScripts/ThirdPartyHelpers.js"></script>
+  <script type="text/javascript">
+
+  var myCmiWindow;
+  var statusText;
+  var cmiCanvas;
+  var toolTip;
+  var myLayerBrowser;
+
+  function cmiWindowStart()
+  {
+
+    statusText = document.getElementById("StatusText");
+    cmiCanvas = document.getElementById("CmiCanvas");
+    toolTip = document.getElementById("ToolTippText");
+    ResizeWindow();
+
+    myCmiWindow = new CmiWindow("CmiCanvas");
+    if(myCmiWindow.isUsable)
+    {
+      if(myCmiWindow.checkWebGlUsage() < 0)
+      {
+        SetStatusText(myCmiWindow.getLastError().message);
+        return;
+      }
+      myCmiWindow.setBgColorRGB(87,97,107);
+      myCmiWindow.setBgText("Unregistered Export");
+      myCmiWindow.colGradient =false;
+      if(myCmiWindow.initWebGlWindow() < 0)
+      {
+        SetStatusText(myCmiWindow.getLastError().message);
+        return;
+      }
+
+      myCmiWindow.useFrontAsTop = true;
+      myCmiWindow.useViewportCulling = true;
+      myCmiWindow.setHeadUpAngle4FirstPersonView(-5.0);
+      myCmiWindow.setNotificationHandler(OnCmiNotification);
+      myCmiWindow.handleArrowKeys = true;
+      myCmiWindow.loadModelFromUrl("${apppath}/cmall/js/3d/Mansion.wpm");
+      myCmiWindow.setMouseModeToMovement();
+      myLayerBrowser = new CmiLayerBrowser("myLayerBrowser","LayerTable");
+    }
+  }
+
+  function SetStatusText(newText)
+  {
+    statusText.innerHTML = newText;
+  }
+
+  function OnCmiNotification (event)
+  {
+    var txtParts = event.data.split("|");
+
+     for (var i = 0 ; i < txtParts.length ; i++) {
+         console.log(txtParts[i]);
+     }
+
+    if(txtParts[0]=="CMI_ERROR")
+    {
+      SetStatusText(txtParts[2]);
+    }
+    else if(txtParts[0]=="CMI_INFO")
+    {
+      switch(txtParts[1])
+      {
+        case "ModelLoading":
+          SetStatusText(txtParts[2]);
+          break;
+        case "ModelOpened":
+          SetStatusText("");
+          myLayerBrowser.buildLayerList(myCmiWindow.getCmiModel(),false);
+          myLayerBrowser.rebuildLayerViewTable();
+          break;
+        case "ModelDisplayed":
+          if ((!myCmiWindow) || (!myCmiWindow.isUsable))
+            return;
+          myCmiWindow.rotateSceneAbsolut(21,40,0,false);
+          myCmiWindow.zoomAll();
+          break;
+        case "EntitySelectionHighlight":
+          if(toolTip)
+          {
+            toolTip.style.left = (parseInt(txtParts[2])+10)+"px";
+            toolTip.style.top = (parseInt(txtParts[3])-20)+"px";
+            toolTip.innerHTML = "&nbsp;" + txtParts[5] +"&nbsp;";
+              toolTip.innerHTML = "Benxxxxxxxxxxxxxxxxxx";
+            toolTip.style.display = "block";
+            cmiCanvas.style.cursor = "default";
+          }
+          break;
+          case "EntityUrlSelectionHighlight":
+
+          if(toolTip)
+          {
+            toolTip.style.left = (parseInt(txtParts[2])+10) +"px";
+            toolTip.style.top = (parseInt(txtParts[3])-20)+"px";
+            toolTip.innerHTML = "&nbsp;" + txtParts[5] +"&nbsp;";
+            toolTip.style.display = "block";
+            cmiCanvas.style.cursor = "pointer";
+          }
+          break;
+        case "EntitySelectionUnHighlight":
+          if(toolTip)
+          {
+            toolTip.style.display = "none";
+            cmiCanvas.style.cursor = "default";
+          }
+          break;
+        case "EntityUrlSelected":
+          window.open (txtParts[4],"mywindow");
+          break;
+      }
+    }
+  }
+
+  function Switch2Perspective(theCheckbox)
+  {
+    if(myCmiWindow.isUsable)
+    {
+      if(myCmiWindow.getFirstPersonViewState() == true)
+      {
+        theCheckbox.checked = true;
+        return;
+      }
+      else
+      {
+        if(theCheckbox.checked)
+          myCmiWindow.switchToPerspective(true);
+        else
+          myCmiWindow.switchToOrtho(true);
+      }
+    }
+  }
+
+  function Switch2FirstPersonView(theCheckbox)
+  {
+    var zoomLabel = document.getElementById("MouseZoomLabel");
+    var rotateLabel = document.getElementById("MouseRotateLabel");
+    var perspectiveButton = document.getElementById("Perspective");
+    var zoomButton= document.getElementById("MouseZoom");
+    var rotateButton = document.getElementById("MouseRotate");
+    var moveButton = document.getElementById("MouseMove");
+    var selectButton = document.getElementById("MouseSelect");
+
+    if(myCmiWindow.isUsable)
+    {
+      if(theCheckbox.checked)
+      {
+        if(zoomLabel)
+          zoomLabel.innerHTML = "Go";
+        if(rotateLabel)
+          rotateLabel.innerHTML = "Turn";
+
+        myCmiWindow.switchTo1stPersonView(true);
+
+        if(perspectiveButton)
+          perspectiveButton.checked = true;
+
+        myCmiWindow.setMouseModeToZoom();
+        if(zoomButton)
+          zoomButton.checked = true;
+        if(rotateButton)
+          rotateButton.checked = false;
+        if(moveButton)
+          moveButton.checked = false;
+        if(selectButton)
+          selectButton.checked = false;
+
+      }
+      else
+      {
+        myCmiWindow.switchToModelView(true);
+
+        if(zoomLabel)
+          zoomLabel.innerHTML = "Zoom";
+        if(rotateLabel)
+          rotateLabel.innerHTML = "Rotate";
+        if((myCmiWindow.isOrthoView)&&(perspectiveButton))
+          perspectiveButton.checked = false;
+
+      }
+    }//if(myCmiWindow.isUsable)
+  }
+  function ResizeWindow()
+  {
+    var xSize = window.innerWidth;
+    var ySize = window.innerHeight;
+    var tbHeight = document.getElementById("CmiToolbar").offsetHeight;
+    var layerTable = document.getElementById("LayerTable");
+    cmiCanvas.width=xSize-15;
+    cmiCanvas.height=ySize-tbHeight-45;
+
+    if((myCmiWindow)&&(myCmiWindow.isUsable))
+    {
+      var canvas = myCmiWindow.getCanvas();
+      myCmiWindow.resizeContext(canvas.width,canvas.height);
+    }
+    statusText.style.top = (parseInt(tbHeight) + 15) + "px";
+  layerTable.style.top=(parseInt(tbHeight)+30)+"px";
+  }
+
+  function switchView(viewSelection, cmiWindow)
+  {
+    if((!cmiWindow)||(!cmiWindow.isUsable))
+      return;
+
+    switch(viewSelection.selectedIndex)
+    {
+      case 0:
+        cmiWindow.rotateSceneAbsolut(21,40,0,false);
+        cmiWindow.zoomAll();
+        break;
+      case 1:
+        cmiWindow.showOglStdView("Front");
+        break;
+      case 2:
+        cmiWindow.showOglStdView("Back");
+        break;
+      case 3:
+        cmiWindow.showOglStdView("Left");
+        break;
+      case 4:
+        cmiWindow.showOglStdView("Right");
+        break;
+      case 5:
+        cmiWindow.showOglStdView("Top");
+        break;
+      case 6:
+        cmiWindow.showOglStdView("Bottom");
+        break;
+      case 7:
+        cmiWindow.showOglStdView("ISO");
+        break;
+    }
+  }
+
+  </script>
+</head>
+
+<body style="background-color:#57616B; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif;" onload="javascript:cmiWindowStart()" onresize="javascript:ResizeWindow()">
+  <form name='ControlForm'>
+    <div id="CmiToolbar" class="cmiStyle" style="font-size:90;">
+    	<input type="radio" id="MouseMove" name="radio" onclick="javascript:myCmiWindow.setMouseModeToMovement()" checked="checked" /><label for="MouseMove">Move</label>
+    	<input type="radio" id="MouseZoom" name="radio" onclick="javascript:myCmiWindow.setMouseModeToZoom()"/><label id="MouseZoomLabel" for="MouseZoom">Zoom</label>
+    	<input type="radio" id="MouseRotate" name="radio" onclick="javascript:myCmiWindow.setMouseModeToRotation()"/><label id="MouseRotateLabel" for="MouseRotate">Rotate</label>
+    	<input type="radio" id="MouseSelect" name="radio" onclick="javascript:myCmiWindow.setMouseModeToSelection()"/><label for="MouseSelect">Select</label>
+      <button name="ZoomAll" type="button" value="Zoom All" alt="Zoom All" onclick="javascript:myCmiWindow.zoomAll()">Zoom All</button>
+      <input type="checkbox" id="Perspective" name="checkbox" onclick="javascript:Switch2Perspective(this)" /><label for="Perspective">Perspective</label>
+      <input type="checkbox" id="FirstPersonView" name="checkbox" onclick="javascript:Switch2FirstPersonView(this)"/><label for="FirstPersonView">1st person view</label>
+      <select size="1" length=50 id="ViewSelection" style="height:24px; font-size:12px; border:0px solid; color:#EEEEEE; background-color:#383838;" onchange="javascript:switchView(this,myCmiWindow)">
+      <option>Start</option>
+      <option>Front</option>
+      <option>Back</option>
+      <option>Left</option>
+      <option>Right</option>
+      <option>Top</option>
+      <option>Bottom</option>
+      <option>ISO</option>
+      </select><br>
+    </div>
+    <canvas id="CmiCanvas" style="touch-action: none;"></canvas>
+    <div id="StatusText" style="position:absolute; top:45px; left:10px; color:#CCCCCC; font-family:Arial,Helvetica,Geneva,Sans-serif; font-size:14px;"></div>
+    <div id="ToolTippText" style="position:absolute; display:none; color:#000000; background-color:#FFFFFF;"></div>  <table border="0" cellpadding="0" cellspacing="0" id="LayerTable" style="position:absolute; top:60px; left:10px; font-weight:bold; color:#FFFFFF;">
+    <thead style="font-size:14px;">
+      <tr>
+        <th height="30" align=left>Layer&nbsp;</th>
+        <th align=left>Show&nbsp;</th>
+        <th align=left>Highlight&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody style="font-size:12px;">
+    </tbody>
+  </table>
+  </form>
+</body>
+</html>

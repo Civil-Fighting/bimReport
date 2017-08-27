@@ -1,0 +1,34 @@
+License information for Skybox cloudtop:
+========================================
+These sky boxes have been downloaded from http://www.3delyvisions.com. 
+They were produced by Colin Lowndes using a properly licensed copy of TerraGen. 
+The author granted permission to distribute these sky boxes under the GNU General Public License version 2. 
+Thanks, Colin!
+
+I (Laszlo Menczel aka Speaker) converted the textures to TGA format and resized the ones not conforming 
+to the power-of-two texture size rule of Quake3. Also renamed the textures to conform to the name conventions 
+of sky boxes in Quake3 (i.e. using the postfixes _bk, _ft, _lf, _rt and _up). 
+The original boxes did not have 'down' textures. 
+I made a 512x512 neutral grey image and added copies of this to each sky box as a fake 'down' texture.
+ 
+License information for Skybox deception:
+=========================================
+This skybox has been created by 'The Mighty Pete'. He can be reached
+at the following WEB site:
+
+http://www.petesoasis.com
+
+The author grants you the right to freely use this sky box in your projects
+and distribute it under the GNU General Public License version 2.
+
+License information for Skybox CloudyLightRays,DarkStormy,FullMoon,SunSet,ThickCloudsWater,TropicalSunnyDay:
+============================================================================================================
+SkyboxSet by Heiko Irrgang ( http://gamvas.com ) is licensed under
+the Creative Commons Attribution-ShareAlike 3.0 Unported License.
+Based on a work at http://93i.de.
+
+To view a copy of this license, visit
+http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
+Creative Commons, 444 Castro Street, Suite 900, Mountain View,
+California, 94041, USA.
+
